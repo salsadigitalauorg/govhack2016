@@ -1,0 +1,11 @@
+name = Text Resizes
+description = "Provides a block with buttons to resize the page text"
+core = 7.x
+package = govCMS core
+
+; Information added by Drupal.org packaging script on 2016-06-30
+version = "7.x-2.4"
+core = "7.x"
+project = "govcms"
+datestamp = "1467245555"
+

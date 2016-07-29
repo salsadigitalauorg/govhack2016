@@ -1,0 +1,11 @@
+name = Appearance
+package = govCMS core
+description = Provides functionality related to Appearance
+core = 7.x
+
+; Information added by Drupal.org packaging script on 2016-06-30
+version = "7.x-2.4"
+core = "7.x"
+project = "govcms"
+datestamp = "1467245555"
+
