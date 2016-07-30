@@ -9,7 +9,6 @@ function govhack_csv_import_form() {
     '#options' => [
       CSV_DATATYPE_ER_SA2 => t('SA2 to Employment Region.csv'),
       CSV_DATATYPE_ER_POSTCODE => t('Postcode to Employment Region.csv'),
-      CSV_DATATYPE_POSTCODE_SA2 => t('Postcode to Employment Region.csv'),
     ],
   );
 
@@ -59,6 +58,9 @@ function govhack_csv_import_form_submit($form, &$form_state) {
     case CSV_DATATYPE_ER_SA2:
       _govhack_csv_import_er_sa2($file);
       break;
+    case CSV_DATATYPE_ER_POSTCODE:
+      _govhack_csv_import_er_postcode($file);
+      break;
   }
 
   file_delete($file);
@@ -68,8 +70,6 @@ function _govhack_csv_import_er_sa2($file) {
   $csv = fopen($file->uri, 'r');
 
   $header = fgetcsv($csv);
-
-  module_load_include('inc', 'govhack_ckan_data', 'govhack_ckan_data.admin');
 
   $count = 0;
   while ($row = fgetcsv($csv)) {
@@ -94,6 +94,48 @@ function _govhack_csv_import_er_sa2($file) {
         node_save($node);
       }
     }
+
+    $count++;
+  }
+
+  fclose($csv);
+
+  drupal_set_message(t('!count records imported', ['!count' => $count]));
+}
+
+function _govhack_csv_import_er_postcode($file) {
+  $csv = fopen($file->uri, 'r');
+
+  $header = fgetcsv($csv);
+
+  $count = 0;
+  while ($row = fgetcsv($csv)) {
+    if (!count($row)) {
+      continue;
+    }
+
+    $postcode = $row[0];
+    $er_name = $row[1];
+
+    $er_nid = _govhack_csv_import_get_location_by_name($er_name);
+    $node = NULL;
+    if ($postcode_nid = _govhack_csv_import_get_postcode($postcode)) {
+      $node = node_load($postcode_nid);
+    }
+
+    if (!$node) {
+      $node = new stdClass();
+      $node->title = $postcode;
+      $node->type = 'postcode';
+      $node->language = LANGUAGE_NONE;
+      node_object_prepare($node);
+    }
+
+    if ($er_nid) {
+      $node->field_location[LANGUAGE_NONE][0]['target_id'] = $er_nid;
+    }
+
+    node_save($node);
 
     $count++;
   }
@@ -165,3 +207,32 @@ function _govhack_csv_import_get_sa2_by_code($code) {
   return $cache[$code];
 }
 
+/**
+ * Get NID of a Postcode node by title.
+ *
+ * @param string $name
+ * @return FALSE|int
+ */
+function _govhack_csv_import_get_postcode($postcode) {
+  $cache = &drupal_static(__FUNCTION__, array());
+
+  if (isset($cache[$postcode])) {
+    return $cache[$postcode];
+  }
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'postcode')
+    ->propertyCondition('title', trim($postcode))
+    ->range(0, 1);
+  $result = $query->execute();
+  if (!empty($result['node']) && count($result['node'])) {
+    $nids = array_keys($result['node']);
+    $cache[$postcode] = reset($nids);
+
+    return $cache[$postcode];
+  }
+
+  $cache[$postcode] = FALSE;
+  return $cache[$postcode];
+}
