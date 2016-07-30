@@ -1,6 +1,7 @@
 <?php
 
 define('CKAN_DATASET_DEMP_ESP_LOC', 'd9c69f98-f0af-4db8-b598-513e1da748ce');
+define('CKAN_DATASET_DEMP_EMP_REGION', 'c31b3ef9-33e0-47bf-b2b3-cd3c14043263');
 
 /**
  * Implements hook_menu().
