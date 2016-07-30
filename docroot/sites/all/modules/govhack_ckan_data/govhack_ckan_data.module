@@ -1,0 +1,20 @@
+<?php
+
+define('CKAN_DATASET_DEMP_ESP_LOC', 'd9c69f98-f0af-4db8-b598-513e1da748ce');
+
+/**
+ * Implements hook_menu().
+ */
+function govhack_ckan_data_menu() {
+  $items['admin/content/ckan_import'] = array(
+    'title' => t('Import from CKAN'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('govhack_ckan_data_import'),
+    'file' => 'govhack_ckan_data.admin.inc',
+    'access arguments' => array('administer content'),
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 99,
+  );
+
+  return $items;
+}
