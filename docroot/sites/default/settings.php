@@ -606,3 +606,6 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
 if (file_exists('/var/www/site-php')) {
   require('/var/www/site-php/govhack/govhack-settings.inc');
 }
+
+ini_set('memory_limit', -1);
+ini_set('max_execution_time', -1);
