@@ -1,0 +1,21 @@
+<?php
+define('CSV_DATATYPE_ER_SA2', 'CSV_DATATYPE_ER_SA2');
+define('CSV_DATATYPE_ER_POSTCODE', 'CSV_DATATYPE_ER_POSTCODE');
+define('CSV_DATATYPE_POSTCODE_SA2', 'CSV_DATATYPE_POSTCODE_SA2');
+
+/**
+ * Implements hook_menu().
+ */
+function govhack_csv_import_menu() {
+  $items['admin/content/csv_import'] = array(
+    'title' => t('Import from CSV'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('govhack_csv_import_form'),
+    'file' => 'govhack_csv_import.admin.inc',
+    'access arguments' => array('administer content'),
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 100,
+  );
+
+  return $items;
+}
