@@ -1,0 +1,10 @@
+name = GovHack CKAN Data
+description = "Load data from CKAN."
+package = GovHack
+core = 7.x
+version = 7.x-1.0
+
+dependencies[] = system (>7.10)
+dependencies[] = govcms_ckan
+
+files[] = govhack_ckan_data.admin.inc

@@ -35,6 +35,8 @@ $conf['securepages_enable'] = FALSE;
 $conf['theme_debug'] = TRUE;
 $conf['views_ui_show_sql_query'] = TRUE;
 
+$conf['govcms_ckan_endpoint_url'] = 'https://data.gov.au';
+
 ini_set('display_errors', 1);
 ini_set('memory_limit', -1);
 ini_set('max_execution_time', -1);

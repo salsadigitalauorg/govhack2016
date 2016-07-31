@@ -1,0 +1,9 @@
+name = GovHack CSV Importer
+description = "Load data from CSV."
+package = GovHack
+core = 7.x
+version = 7.x-1.0
+
+dependencies[] = system (>7.10)
+
+files[] = govhack_csv_import.admin.inc
