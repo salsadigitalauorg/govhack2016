@@ -360,6 +360,8 @@ function _govhack_csv_import_er_stat_lmip($file, $er_nid) {
     if (!count($row)) {
       continue;
     }
+    $count++;
+    
     $industry_name = $row[0];
     $number_of_jobs = $row[1];
     $projected_number_of_jobs = $row[2];
