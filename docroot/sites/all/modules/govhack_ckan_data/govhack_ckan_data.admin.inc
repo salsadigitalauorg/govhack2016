@@ -218,7 +218,7 @@ function _govhack_ckan_data_prepare_term($term_name, $vocabulary_machine_name) {
 
   $terms = taxonomy_get_term_by_name($term_name, $vocabulary_machine_name);
   if ($terms && count($terms)) {
-    $term = reset($term);
+    $term = reset($terms);
     $cache[$vocabulary_machine_name][$term_name] = $term;
 
     return $term;
