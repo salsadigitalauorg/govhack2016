@@ -105,7 +105,7 @@ function govhack_csv_import_form_submit($form, &$form_state) {
       _govhack_csv_import_er_postcode($file);
       break;
     case CSV_DATATYPE_ER_STAT_LMIP:
-
+      _govhack_csv_import_er_stat_lmip($file, $values['employment_region']);
       break;
     case CSV_DATATYPE_ER_STAT_ABS:
       _govhack_csv_import_er_stat_abs($file, $values['employment_region']);
@@ -329,6 +329,102 @@ function _govhack_csv_import_er_stat_abs($file, $er_nid) {
     }
     $node->status = NODE_PUBLISHED;
     // Save it.
+    node_save($node);
+  }
+
+  drupal_set_message(t('!count records imported', ['!count' => $count]));
+}
+
+/**
+ * Import ER Stats LMIP file - hardcoded for 2014.
+ *
+ * @param object $file
+ * @param int $er_nid
+ */
+function _govhack_csv_import_er_stat_lmip($file, $er_nid) {
+  $csv = fopen($file->uri, 'r');
+
+  module_load_include('inc', 'govhack_ckan_data', 'govhack_ckan_data.admin');
+
+  $header = fgetcsv($csv); // 0, 1, 2, 5
+
+  $year = 2014;
+  $date = date('Y-m-d\Th:i:s', mktime(23, 59, 59, 12, 31, $year));
+
+  $employment_regions = _govhack_csv_import_get_er_option_list();
+
+  $data = [];
+  $count = 0;
+  // Build data from CSV.
+  while ($row = fgetcsv($csv)) {
+    if (!count($row)) {
+      continue;
+    }
+    $industry_name = $row[0];
+    $number_of_jobs = $row[1];
+    $projected_number_of_jobs = $row[2];
+
+    $industry = _govhack_ckan_data_prepare_term($industry_name, 'industry');
+    $data[$industry->tid] = [
+      'name' => $industry_name,
+      'jobs' => $number_of_jobs,
+      'projected' => $projected_number_of_jobs,
+    ];
+  }
+  fclose($csv);
+
+  // Prepare Empl. Rate by Industry nodes.
+  $emp_rates = [];
+  foreach ($data as $industry_tid => $industry_stat) {
+    if ($emp_rate_nid = _govhack_csv_import_get_employment_rate_by_industry($year, $er_nid, $industry_tid)) {
+      $emp_rate = node_load($emp_rate_nid);
+    }
+    else {
+      $emp_rate = new stdClass();
+      $emp_rate->title = $year . ' - ' . $employment_regions[$er_nid] . ' - ' . $industry_stat['name'];
+      $emp_rate->type = 'employment_rate_by_industry';
+      $emp_rate->language = LANGUAGE_NONE;
+      node_object_prepare($emp_rate);
+      $emp_rate->field_date[LANGUAGE_NONE][0]['value'] = $date;
+      $emp_rate->field_industry[LANGUAGE_NONE][0]['tid'] = $industry_tid;
+      $emp_rate->field_location_single[LANGUAGE_NONE][0]['target_id'] = $er_nid;
+    }
+    $emp_rate->status = NODE_PUBLISHED;
+    $emp_rate->field_number_of_jobs[LANGUAGE_NONE][0]['value'] = $industry_stat['jobs'];
+    $emp_rate->field_projected_number_of_jobs[LANGUAGE_NONE][0]['value'] = $industry_stat['projected'];
+    $emp_rate->status = NODE_PUBLISHED;
+    // Save it.
+    node_save($emp_rate);
+    $emp_rates[$emp_rate->nid] = $emp_rate->nid;
+  }
+
+  // Prepare Employment Statistics node.
+  if ($nid = _govhack_csv_import_get_er_stat($year, $er_nid)) {
+    $node = node_load($nid);
+    if (!empty($node->field_employment_rate_by_industr[LANGUAGE_NONE])) {
+      foreach ($node->field_employment_rate_by_industr[LANGUAGE_NONE] as $delta => $value) {
+        $emp_rates[$value['target_id']] = $value['target_id'];
+      }
+    }
+  }
+  else {
+    $node = new stdClass();
+    $node->title = $year . ' - ' . $employment_regions[$er_nid];
+    $node->type = 'employment_statistics';
+    $node->language = LANGUAGE_NONE;
+    node_object_prepare($node);
+    $node->field_date[LANGUAGE_NONE][0]['value'] = $date;
+    $node->field_location_single[LANGUAGE_NONE][0]['target_id'] = $er_nid;
+  }
+
+  if (count($emp_rates)) {
+    $node->field_employment_rate_by_industr[LANGUAGE_NONE] = [];
+    $emp_rates = array_unique($emp_rates);
+    foreach ($emp_rates as $emp_rate_nid) {
+      $node->field_employment_rate_by_industr[LANGUAGE_NONE][] = ['target_id' => $emp_rate_nid];
+    }
+
+    $node->status = NODE_PUBLISHED;
     node_save($node);
   }
 
